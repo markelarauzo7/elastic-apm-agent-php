@@ -154,7 +154,7 @@ class StacktraceFrame implements \JsonSerializable
             $class,
             self::valueOrNull($debugBacktrace, 'function'),
             null,
-            self::valueOrNull($debugBacktrace, 'line'),
+            self::valueOrZero($debugBacktrace, 'line'),
             $class,
             null,
             null,
@@ -173,6 +173,19 @@ class StacktraceFrame implements \JsonSerializable
         return true === array_key_exists($key, $array)
             ? $array[$key]
             : null;
+    }
+
+    /**
+     * @param array $array
+     * @param string $key
+     *
+     * @return mixed|int
+     */
+    private static function valueOrZero(array $array, $key)
+    {
+        return true === array_key_exists($key, $array)
+            ? $array[$key]
+            : 0;
     }
 
     /**
