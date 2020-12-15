@@ -150,7 +150,7 @@ class StacktraceFrame implements \JsonSerializable
             $file,
             null,
             null,
-            null !== $file ? basename($file) : null,
+            null !== $file ? basename($file) : '',
             $class,
             self::valueOrNull($debugBacktrace, 'function'),
             null,
