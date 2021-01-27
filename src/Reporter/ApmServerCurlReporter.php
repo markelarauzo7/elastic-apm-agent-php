@@ -25,12 +25,12 @@ final class ApmServerCurlReporter implements Reporter
     private $baseUri;
 
     /**
-     * @var string
+     * @var int
      */
     private $connectionTimeout;
 
     /**
-     * @var string
+     * @var int
      */
     private $timeout;
 
