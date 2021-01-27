@@ -2,6 +2,7 @@
 
 namespace ZoiloMora\ElasticAPM\Reporter;
 
+use Exception;
 use ZoiloMora\ElasticAPM\Events\Common\Service\Agent;
 use ZoiloMora\ElasticAPM\Helper\NDJson;
 use ZoiloMora\ElasticAPM\Helper\Compressor;
@@ -10,6 +11,13 @@ final class ApmServerCurlReporter implements Reporter
 {
     const METHOD = 'POST';
     const URI = '/intake/v2/events';
+    // See: https://www.php.net/manual/en/function.curl-setopt.php
+    // Tell cURL that it should only spend 3 seconds
+    // trying to connect to the URL in question.
+    const CONNECTION_TIMEOUT = 3;
+    // A given cURL operation should only take
+    // 10 seconds max
+    const TIMEOUT = 10;
 
     /**
      * @var string
@@ -17,11 +25,27 @@ final class ApmServerCurlReporter implements Reporter
     private $baseUri;
 
     /**
+     * @var string
+     */
+    private $connectionTimeout;
+
+    /**
+     * @var string
+     */
+    private $timeout;
+
+    /**
      * @param string $baseUri
      */
-    public function __construct($baseUri)
+    public function __construct(
+        $baseUri,
+        $connectionTimeout = null,
+        $timeout = null
+    )
     {
         $this->baseUri = $baseUri;
+        $this->connectionTimeout = $connectionTimeout === null ? self::CONNECTION_TIMEOUT : $connectionTimeout;
+        $this->timeout = $timeout === null ? self::TIMEOUT : $timeout;
     }
 
     /**
@@ -51,8 +75,14 @@ final class ApmServerCurlReporter implements Reporter
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->connectionTimeout);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
 
         $response = curl_exec($ch);
+
+        if(curl_errno($ch)){
+            throw new Exception(curl_error($ch));
+        }
 
         $httpStatusCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
